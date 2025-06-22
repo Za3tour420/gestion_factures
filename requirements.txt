@@ -1,0 +1,11 @@
+requests
+pillow
+langchain
+langchain-ollama
+langchain-nvidia-ai-endpoints
+datasets
+transformers
+torchao
+protobuf
+sentencepiece
+pytesseract
