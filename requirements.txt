@@ -1,11 +1,8 @@
-requests
-pillow
 langchain
-langchain-ollama
+langchain-core
 langchain-nvidia-ai-endpoints
-datasets
-transformers
-torchao
-protobuf
-sentencepiece
-pytesseract
+langchain-tavily
+langgraph
+langgraph-prebuilt
+IPython
+grandalf
