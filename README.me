@@ -1,43 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Python Project Setup</title>
-</head>
-<body>
-  <h1>Python Project Setup</h1>
+# 🐍 Python Project Setup
 
-  <section>
-    <h2>1. Create and Activate a Virtual Environment (Linux)</h2>
-    <pre><code>python3 -m venv venv
-source venv/bin/activate</code></pre>
-    <p>This creates an isolated environment for your Python dependencies.</p>
-  </section>
+## 1. Create and Activate a Virtual Environment (Linux)
 
-  <section>
-    <h2>2. Export API Keys as Environment Variables</h2>
-    <p>Replace the placeholders with your actual API keys:</p>
-    <pre><code>export TAVILY_API_KEY="your_tavily_api_key"
-export NVIDIA_API_MISTRAL_MEDIUM3_INSTRUCT="your_nvidia_api_key"</code></pre>
-    <p>To make these persist, you can add them to your <code>~/.bashrc</code> or <code>~/.zshrc</code> file.</p>
-  </section>
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
 
-  <section>
-    <h2>3. Install Dependencies</h2>
-    <p>Make sure you're in your virtual environment, then run:</p>
-    <pre><code>pip install -r requirements.txt</code></pre>
-    <p>This installs all required packages listed in <code>requirements.txt</code>.</p>
-  </section>
+## 2. Export API Keys as Environment Variables
 
-  <section>
-    <h2>4. Run the Project</h2>
-    <p>After setup, you can run your Python scripts as usual:</p>
-    <pre><code>python main.py</code></pre>
-  </section>
+```bash
+export GOOGLE_CSE_ID="your_google_cse_id"
+export GOOGLE_API_KEY="your_google_api_key"
+export NVIDIA_API_MISTRAL_MEDIUM3_INSTRUCT="your_nvidia_api_key"
+```
+To make them persistent for the current user, run the following:
 
-  <footer>
-    <p><em>Make sure to keep your API keys secret and never commit them to version control!</em></p>
-  </footer>
-</body>
-</html>
+```bash
+echo export GOOGLE_CSE_ID="your_google_cse_id" >> ./~bashrc
+echo export GOOGLE_API_KEY="your_google_api_key" >> ./~bashrc
+echo export NVIDIA_API_MISTRAL_MEDIUM3_INSTRUCT="your_nvidia_api_key" >> ./~bashrc
+
+source ./~bashrc
+```
+
+## 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+## 4. Run the Project
+```bash
+python main.py
+```
