@@ -1,10 +1,8 @@
-import json
 from typing import Annotated
 from typing_extensions import TypedDict
 
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, FunctionMessage
 from langchain_core.tools import tool
-from langchain_tavily import TavilySearch
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 
 from langgraph.prebuilt import create_react_agent, ToolNode, tools_condition
@@ -13,6 +11,7 @@ from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
 
 from utils import *
+from tools import init_web_search_tool
 
 # Instantiate the model
 llm = ChatNVIDIA(
@@ -22,17 +21,11 @@ llm = ChatNVIDIA(
     temperature=0
 )
 
-# Tools
-web_search = TavilySearch(
-            max_results = 1,
-            include_answer=True,
-)
+# Tools init
+web_search_tool = init_web_search_tool()
 
-tools = [web_search]
-
-# State for graph
-class State(TypedDict):
-    messages: Annotated[list, add_messages]
+# Tools dictionary
+tools = [web_search_tool]
 
 # Initialize StateGraph
 workflow = StateGraph(MessagesState)
@@ -53,7 +46,7 @@ print(app.get_graph().draw_ascii())
 
 config = {"configurable": {"thread_id": "1"}}
 
-def user_agent_multiturn(queries):
+"""def user_agent_multiturn(queries):
     for query in queries:
         print(f"User: {query}")
         print("Agent: ", end="")
@@ -63,18 +56,25 @@ def user_agent_multiturn(queries):
             stream_mode="messages"
         ):
             if hasattr(msg, "content") and msg.content:
-                content = msg.content
-                try:
-                    data = json.loads(content)
-                    if isinstance(data, dict) and "answer" in data:
-                        print(data["answer"], end="", flush=True)
-                    else:
-                        # Fallback: print raw if it's not Tavily-style JSON
-                        print(content, end="", flush=True)
-                except json.JSONDecodeError:
-                    # Not JSON, just print it
-                    print(content, end="", flush=True)
+                print(msg.content, end="", flush=True)
+        print("\n")"""
+        
+def user_agent_multiturn(queries):
+    for query in queries:
+        print(f"\nUser: {query}")
+        result = app.invoke({"messages": [HumanMessage(content=query)]}, config)
+
+        # Print assistant's final reply
+        print("Agent:", end=" ")
+        for msg in result["messages"]:
+            if isinstance(msg, AIMessage):
+                print(msg.content)
+
+        # Print tool call and response if it happened
+        for msg in result["messages"]:
+            if isinstance(msg, ToolMessage) or isinstance(msg, FunctionMessage):
+                print(f"[TOOL CALLED] Tool name: {msg.name}, Output: {msg.content}")
         print("\n")
 
-queries = ["Quel est le taux de TVA de base en France?", "Chercher tous les taux appliqués."]
+queries = ["Quel est le taux de TVA de base en France?", "Quel taux serait appliqué pour l'achat d'un laptop à 500 euros?", "Chercher tous les taux appliqués en France."]
 user_agent_multiturn(queries)
