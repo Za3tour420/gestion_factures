@@ -1,7 +1,7 @@
 langchain
 langchain-core
 langchain-nvidia-ai-endpoints
-langchain-tavily
+langchain-google-community
 langgraph
 langgraph-prebuilt
 IPython
