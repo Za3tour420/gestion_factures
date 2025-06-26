@@ -31,5 +31,5 @@ pip install -r requirements.txt
 
 ## 4. Run the Project
 ```bash
-python main.py
+python agentic.py
 ```
