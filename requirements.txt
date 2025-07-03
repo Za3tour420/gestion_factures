@@ -6,3 +6,9 @@ langgraph
 langgraph-prebuilt
 IPython
 grandalf
+selenium
+webdriver-manager
+pymupdf
+pytesseract
+pillow
+pypdf
