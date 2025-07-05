@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Facture Bot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🧾 Facture Analysis Chatbot</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <textarea name="query" placeholder="Posez votre question..." required></textarea><br>
+            <input type="file" name="pdf" accept=".pdf" required><br>
+            <button type="submit">Analyser</button>
+        </form>
+        {% if history %}
+            {% for msg in history %}
+                <div class="message {{ msg.role }}">
+                    <strong>{{ msg.role.capitalize() }}:</strong>
+                    <p>{{ msg.content }}</p>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</body>
+</html>
+
