@@ -33,3 +33,6 @@ pip install -r requirements.txt
 ```bash
 python3 agentic.py
 ```
+
+## 5. Actual Pipeline
+![image](pipeline.png)
