@@ -2,11 +2,10 @@ import uuid
 from flask import Flask, render_template, request, session, jsonify
 import os
 from agentic import user_agent_multiturn
-from utils import encode_pdf
+from utils import encode_pdf_from_stream
 
 app = Flask(__name__)
 app.secret_key = os.urandom(15).hex()
-app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf'}
 
 def allowed_file(filename):
@@ -29,9 +28,8 @@ def chat():
     uploaded_file = request.files.get("pdf")
     
     if uploaded_file and allowed_file(uploaded_file.filename):
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_file.filename)
-        uploaded_file.save(filepath)
-        base64_page = encode_pdf(filepath)
+        file_bytes = uploaded_file.read()
+        base64_page = encode_pdf_from_stream(file_bytes)
         
         response = user_agent_multiturn(query, base64_page, session["thread_id"])
     else:
@@ -46,6 +44,5 @@ def chat():
 
 
 if __name__ == "__main__":
-    os.makedirs("uploads", exist_ok=True)
     app.run(debug=True)
 

@@ -32,4 +32,21 @@ def encode_pdf(pdf_path: str):
         print(f"An error occured: {e}")
 
     return b64_page
+
+def encode_pdf_from_stream(file_stream):
+    b64_page = None
+    try:
+        with fitz.open(stream=file_stream, filetype="pdf") as doc:
+            page = doc.load_page(0)
+            pix = page.get_pixmap()
+            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+            buffer = io.BytesIO()
+            img.save(buffer, format="PNG")
+            b64_page = base64.b64encode(buffer.getvalue()).decode("utf-8")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    return b64_page
+
     
