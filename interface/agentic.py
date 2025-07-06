@@ -48,7 +48,7 @@ agent_app = workflow.compile(checkpointer=memory)
 print(agent_app.get_graph().draw_ascii())
         
 def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_id: str = "1"):
-    print(f"User: {query}")
+    #print(f"User: {query}")
     
     config = {"configurable":  {"thread_id": thread_id}}
     # Build query with image if provided
@@ -57,15 +57,18 @@ def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_
         content.append({
             "type": "image_url",
             "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}})
-    message = HumanMessage(content=content)
-    
-    result = agent_app.invoke({"messages": [message]}, config)
 
+    message = HumanMessage(content=content)    
+    result = agent_app.invoke({"messages": [message]}, config)
+    
     response_text = ""
+    
+    #print(f"\nResult: {result['messages']}")
+
     for msg in result["messages"]:
         if isinstance(msg, AIMessage):
             response_text += msg.content + "\n"
         elif isinstance(msg, ToolMessage) or isinstance(msg, FunctionMessage):
-            response_text += f"\n[TOOL] {msg.name}: {msg.content}\n"
+            response_text += f"[TOOL:{msg.name}] {msg.content}\n"
 
     return response_text.strip()

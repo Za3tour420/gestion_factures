@@ -18,20 +18,18 @@ def encode_image(image_path: str):
         return base64.b64encode(f.read()).decode('utf-8')
 
 def encode_pdf(pdf_path: str):
-    all_pages_b64 = []
-    
+    b64_page = None
     try:
         with fitz.open(pdf_path) as doc:
-            for page_num in range(doc.page_count):
-                page = doc.load_page(page_num)
-                pix = page.get_pixmap()
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            page = doc.load_page(0)
+            pix = page.get_pixmap()
+            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
-                buffer = io.BytesIO()
-                img.save(buffer, format="PNG")
-                all_pages_b64.append(base64.b64encode(buffer.getvalue()).decode("utf-8"))
+            buffer = io.BytesIO()
+            img.save(buffer, format="PNG")
+            b64_page = base64.b64encode(buffer.getvalue()).decode("utf-8")
     except Exception as e:
         print(f"An error occured: {e}")
 
-    return all_pages_b64
+    return b64_page
     
