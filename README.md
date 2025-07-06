@@ -35,4 +35,4 @@ python3 agentic.py
 ```
 
 ## 5. Actual Pipeline
-![image](pipeline.png)
+<img src="pipeline.jpg" alt="Pipeline" width="25%" height="25%"/>
