@@ -6,7 +6,7 @@ from utils import encode_pdf_from_stream
 
 app = Flask(__name__)
 app.secret_key = os.urandom(15).hex()
-app.config['ALLOWED_EXTENSIONS'] = {'pdf'}
+app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'jpg', 'jpeg', 'png', 'webp'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -37,8 +37,6 @@ def chat():
     
     session["chat_history"].append({"role": "user", "content": query})
     session["chat_history"].append({"role": "assistant", "content": response})
-    
-    print("Chat history now: ", session["chat_history"])
     
     return jsonify({"history": session["chat_history"]})
 

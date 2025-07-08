@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Facture Bot</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -14,7 +15,7 @@
 
         <form id="chatForm" enctype="multipart/form-data" class="chat-input">
             <textarea id="query" name="query" placeholder="Posez votre question..." required></textarea><br />
-            <input id="pdf" type="file" name="pdf" accept=".pdf" /><br />
+            <input id="pdf" type="file" name="pdf" accept=".pdf, .jpg, .jpeg, .png, .webp" multiple/><br />
             <button type="submit">Analyser</button>
         </form>
 
@@ -53,15 +54,15 @@
         }
 
         const data = await response.json();
-        const chatArea = document.getElementById("chatArea");
-        chatArea.innerHTML = ""; // Clear previous chat
+        const newMessages = data.history.slice(-2) // Last 2 messages
 
-        data.history.forEach(msg => {
+        newMessages.forEach(msg => {
             const div = document.createElement("div");
             div.className = `message ${msg.role}`;
-            div.innerHTML = `<strong>${msg.role.charAt(0).toUpperCase() + msg.role.slice(1)}:</strong><p>${msg.content}</p>`;
+            div.innerHTML = `<strong>${msg.role.charAt(0).toUpperCase() + msg.role.slice(1)}:</strong><div>${marked.parse(msg.content)}</div>`;
             chatArea.appendChild(div);
         });
+
         
         scrollToBottom();
     });

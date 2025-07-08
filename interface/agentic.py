@@ -63,12 +63,11 @@ def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_
     
     response_text = ""
     
-    #print(f"\nResult: {result['messages']}")
-
-    for msg in result["messages"]:
-        if isinstance(msg, AIMessage):
-            response_text += msg.content + "\n"
-        elif isinstance(msg, ToolMessage) or isinstance(msg, FunctionMessage):
-            response_text += f"[TOOL:{msg.name}] {msg.content}\n"
+    last_msg = result["messages"][-1]
+    
+    if isinstance(last_msg, AIMessage):
+        response_text = last_msg.content
+    else:
+        response_text = "Il y a eu une erreur! Veuillez réessayer!"
 
     return response_text.strip()
