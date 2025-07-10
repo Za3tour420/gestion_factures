@@ -23,7 +23,7 @@ def init_web_search_tool():
 def get_french_vat_from_bofip() -> str:
     """
     Extrait les informations principales sur les taux de TVA à partir de la page BOFiP officielle.
-    Résumer et bien formuler le contenu du (des) résultat(s) trouvé(s).
+    Résumer le contenu de la page.
     """
     url = "https://bofip.impots.gouv.fr/bofip/1380-PGP.html/identifiant%3DBOI-TVA-LIQ-10-20250514"
     response = requests.get(url)

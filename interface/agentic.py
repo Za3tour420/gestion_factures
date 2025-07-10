@@ -43,31 +43,48 @@ workflow.set_finish_point("agent")
 memory = MemorySaver()
 
 # Compile
-agent_app = workflow.compile(checkpointer=memory)
+app = workflow.compile(checkpointer=memory)
 
-print(agent_app.get_graph().draw_ascii())
+print(app.get_graph().draw_ascii())
+
+config = {"configurable": {"thread_id": "1"}}
         
-def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_id: str = "1"):
-    #print(f"User: {query}")
+def user_agent_multiturn(query: str, base64_image: Optional[str] = None):
+    print(f"User: {query}")
     
-    config = {"configurable":  {"thread_id": thread_id}}
     # Build query with image if provided
     content = [{"type": "text", "text": query}]
     if base64_image:
         content.append({
             "type": "image_url",
             "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}})
+    message = HumanMessage(content=content)
+    
+    result = app.invoke({"messages": [message]}, config)
 
-    message = HumanMessage(content=content)    
-    result = agent_app.invoke({"messages": [message]}, config)
-    
-    response_text = ""
-    
-    last_msg = result["messages"][-1]
-    
-    if isinstance(last_msg, AIMessage):
-        response_text = last_msg.content
-    else:
-        response_text = "Il y a eu une erreur! Veuillez réessayer!"
+    # Print assistant's final reply
+    print("Agent:", end=" ")
+    for msg in result["messages"]:
+        if isinstance(msg, AIMessage):
+            print(msg.content)
 
-    return response_text.strip()
+    # Print tool call and response if it happened
+    for msg in result["messages"]:
+        if isinstance(msg, ToolMessage) or isinstance(msg, FunctionMessage):
+            print(f"[TOOL CALLED] Tool name: {msg.name}, Output: {msg.content}")
+    print("\n")
+
+base64_image = encode_pdf("test_interface/exemple de facture/reexempledefacture/FACTURE_H0771_BIL_613334_958061.PDF", 1)
+
+query = """
+Tu es un expert en analyse de factures.
+
+Analyse l'image suivante puis:
+1. Extrait tous les articles avec leur description, prix unitaire, quantité, code TVA appliqué, montant total (HT et/ou TTC) et toute autre donnée utile.
+2. Vérifie pour chaque article si le taux de TVA appliqué est correct ou non.
+3. Si 'arrh client' ou une dénomination similaire est présente au sein des articles, ça représente la somme d'argent déposée par le client au fournisseur des biens et/ou services.
+
+Indique clairement les erreurs éventuelles, et propose les taux attendus le cas échéant.
+Présente le tout sous forme de tableau clair.
+"""
+user_agent_multiturn(query, base64_image[0]) # Single image
