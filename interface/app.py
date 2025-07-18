@@ -4,6 +4,8 @@ import os
 from agentic import user_agent_multiturn
 from utils import encode_pdf_from_stream
 
+import traceback
+
 app = Flask(__name__)
 app.secret_key = os.urandom(15).hex()
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'jpg', 'jpeg', 'png', 'webp'}
@@ -25,20 +27,26 @@ def chat():
         session["chat_history"] = []
     
     query = request.form.get("query", "").strip()
-    uploaded_file = request.files.get("pdf")
+    uploaded_file = request.files.get("pdf") # file id in HTML, not actual type!
     
-    if uploaded_file and allowed_file(uploaded_file.filename):
-        file_bytes = uploaded_file.read()
-        base64_page = encode_pdf_from_stream(file_bytes)
+    try:
+        if uploaded_file and allowed_file(uploaded_file.filename):
+            file_bytes = uploaded_file.read()
+            base64_page = encode_pdf_from_stream(file_bytes)
+            
+            response = user_agent_multiturn(query, base64_page, session["thread_id"])
+        else:
+            response = user_agent_multiturn(query, None, session["thread_id"])
         
-        response = user_agent_multiturn(query, base64_page, session["thread_id"])
-    else:
-        response = user_agent_multiturn(query, None, session["thread_id"])
+        session["chat_history"].append({"role": "user", "content": query})
+        session["chat_history"].append({"role": "assistant", "content": response})
+        
+        return jsonify({"history": session["chat_history"]})
+        
+    except Exception as e:
+        print(f"[FLASK ERROR] {traceback.format_exc()}")
+        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
     
-    session["chat_history"].append({"role": "user", "content": query})
-    session["chat_history"].append({"role": "assistant", "content": response})
-    
-    return jsonify({"history": session["chat_history"]})
 
 
 if __name__ == "__main__":
