@@ -10,6 +10,8 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.tools import tool
 from utils import get_google_api_keys
 
+from typing import Optional
+
 # Get API keys
 GOOGLE_API_KEY, GOOGLE_CSE_ID = get_google_api_keys()
 
@@ -47,17 +49,26 @@ def get_french_vat_from_bofip(url: str) -> str:
 # RAG tool
 #********************************************************************#
 
-# Load persisted vectorstore + embeddings
-embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-vectorstore = Chroma(persist_directory="./chroma_store", embedding_function=embedder)
-retriever = vectorstore.as_retriever(search_type="similarity")
-
 @tool("search_regles_de_gestion")
-def rag_answer_tool(question: str) -> str:
+def rag_answer_tool(question: str, rule_id: Optional[str] = None) -> str:
     """
-    Utilise la base de règles ChromaDB pour répondre aux questions sur les conformités du e-invoices, etc.
+    Utilise la base de règles ChromaDB pour répondre aux questions sur les conformités et règles de gestion des e-invoices, etc.
+    Déduire rule_id de la question si elle est mentionnée. Elle est de la forme GX.XX
     Retourner une seule réponse finale et détaillée pour tous les recherches.
     """
-    docs = retriever.get_relevant_documents(question)
+    print(f"🔎 RAG tool called with: {question} | rule ID: {rule_id}")
+    
+    # Load persisted vectorstore + embeddings
+    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    vectorstore = Chroma(persist_directory="./chroma_store", embedding_function=embedder)
+    retriever = vectorstore.as_retriever(search_type="similarity")
+    
+    # Get docs
+    docs = retriever.invoke(question, filter={"id_règle": rule_id})
+    print(f"✅ Retrieved {len(docs)} docs")
+    for doc in docs:
+        print("\n",doc)
+    
     return "\n\n---\n\n".join(doc.page_content for doc in docs)
+
 
