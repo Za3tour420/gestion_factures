@@ -53,7 +53,8 @@ def get_french_vat_from_bofip(url: str) -> str:
 def rag_answer_tool(question: str, rule_id: Optional[str] = None) -> str:
     """
     Utilise la base de règles ChromaDB pour répondre aux questions sur les conformités et règles de gestion des e-invoices, etc.
-    Déduire rule_id de la question si elle est mentionnée. Elle est de la forme GX.XX
+    Déduire rule_id de la question si elle est mentionnée. Elle est de la forme GX.XX.
+    Questionner la base en résumant le contenu de la requête.
     Retourner une seule réponse finale et détaillée pour tous les recherches.
     """
     print(f"🔎 RAG tool called with: {question} | rule ID: {rule_id}")
@@ -61,10 +62,13 @@ def rag_answer_tool(question: str, rule_id: Optional[str] = None) -> str:
     # Load persisted vectorstore + embeddings
     embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = Chroma(persist_directory="./chroma_store", embedding_function=embedder)
-    retriever = vectorstore.as_retriever(search_type="similarity")
+    retriever = vectorstore.as_retriever(search_type="mmr", k=5)
     
     # Get docs
-    docs = retriever.invoke(question, filter={"id_règle": rule_id})
+    if rule_id:
+        docs = retriever.invoke(question, filter={"id_règle": rule_id})
+    else:
+        docs = retriever.invoke(question)
     print(f"✅ Retrieved {len(docs)} docs")
     for doc in docs:
         print("\n",doc)

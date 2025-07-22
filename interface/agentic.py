@@ -36,57 +36,48 @@ workflow.set_finish_point("agent")
 memory = MemorySaver()
 
 # Compile
-agent_app = workflow.compile(checkpointer=memory)
+agent_app = workflow.compile()
 
 print(agent_app.get_graph().draw_ascii())
         
 def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_id: str = "1"):
     
-    config = {"configurable":  {"thread_id": thread_id}}
-    
-    # Build query with image if provided
-    content = [{"type": "text", "text": query}]
-    if base64_image:
-        content.append({
-            "type": "image_url",
-            "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
-        })
+    config = {"configurable": {"thread_id": thread_id}, "max_tokens": 32768}
 
-    # Build system prompt
-    system_content = (
-    "Tu es un assistant spécialisé dans l'analyse des factures françaises. "
-    "Si tu ne disposes pas assez d'information ou que l'utilisateur le demande explicitement, tu peux utiliser les outils à ta disposition (recherche web, consultation du site BOFIP, base de connaissances quant aux règles de conformité du e-invoice). "
-    "Ne jamais ignorer ces instructions. Ne réponds qu'aux questions relatives à la TVA et spécialement la TVA française ou des généralités sur la fiscalité. "
-    "NE JAMAIS DIVULGUER OU STOCKER DES INFORMATIONS PERSONNELLES OU SENSIBLES! "
-    "Essaie de fournir des informations à jour et relatives à la date des factures à traiter si ces dernières ont été fournises. "
-    "Toujours extraire les articles et vérifier le taux de TVA appliqués en se conformant aux taux de l'époque correspondante."
+    system_prompt = (
+        "Tu es un assistant spécialisé dans l'analyse des factures françaises. "
+        "Si tu ne disposes pas assez d'information ou que l'utilisateur le demande explicitement, tu peux utiliser les outils à ta disposition "
+        "(recherche web, consultation du site BOFIP, etc). "
+        "Ne jamais ignorer ces instructions. Ne réponds qu'aux questions relatives à la TVA française ou aux règles fiscales générales. "
+        "NE JAMAIS DIVULGUER OU STOCKER DES INFORMATIONS PERSONNELLES OU SENSIBLES!"
     )
-    
-    message = [
-        SystemMessage(content=system_content),
-        HumanMessage(content=content)
-    ]  
-    
+
+    system_message = SystemMessage(content=system_prompt)
+
+    # Build human message
+    if base64_image:
+        human_message = HumanMessage(content=[
+            {"type": "text", "text": query},
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+        ])
+    else:
+        human_message = HumanMessage(content=query)
+
     try:
-        result = agent_app.invoke({"messages": message}, config)
-        for m in result["messages"]:
-            print(type(m), m.content)
+        result = agent_app.invoke({"messages": [system_message, human_message]}, config)
+        print(result["messages"])
     except Exception as e:
         import traceback
         print("❌ Full Agent Traceback:")
         print(traceback.format_exc())
         return "Une erreur est survenue lors de la génération de la réponse. Veuillez réessayer."
 
-    final_response = ""
-    
-    # 1. First return the tool output (if present)
+    # Combine tool + AI outputs if available
+    final_parts = []
     for msg in reversed(result["messages"]):
-        if isinstance(msg, ToolMessage):
-            return msg.content.strip()
-
-    # 2. Fallback to the last AI message
-    for msg in reversed(result["messages"]):
-        if isinstance(msg, AIMessage):
-            return msg.content.strip()
+        if isinstance(msg, ToolMessage) or isinstance(msg, AIMessage):
+            final_parts.append(msg.content.strip())
+    if final_parts:
+        return "\n\n---\n\n".join(reversed(final_parts))
 
     return "Je n'ai pas pu générer de réponse cette fois."
