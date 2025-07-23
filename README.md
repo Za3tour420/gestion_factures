@@ -17,9 +17,9 @@ export NVIDIA_API_MISTRAL_MEDIUM3_INSTRUCT="your_nvidia_api_key"
 To make them persistent for the current user, run the following:
 
 ```bash
-echo export GOOGLE_CSE_ID="your_google_cse_id" >> ./~bashrc
-echo export GOOGLE_API_KEY="your_google_api_key" >> ./~bashrc
-echo export NVIDIA_API_MISTRAL_MEDIUM3_INSTRUCT="your_nvidia_api_key" >> ./~bashrc
+echo 'export GOOGLE_CSE_ID="your_google_cse_id"' >> ./~bashrc
+echo 'export GOOGLE_API_KEY="your_google_api_key"' >> ./~bashrc
+echo 'export NVIDIA_API_MISTRAL_MEDIUM3_INSTRUCT="your_nvidia_api_key"' >> ./~bashrc
 
 source ./~bashrc
 ```
