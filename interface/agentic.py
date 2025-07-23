@@ -10,7 +10,7 @@ from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langgraph.prebuilt import create_react_agent, ToolNode, tools_condition
 from langgraph.graph import StateGraph, START, END, MessagesState
 from langgraph.graph.message import add_messages
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 
 from utils import *
 from tools import *
@@ -33,16 +33,17 @@ workflow.set_entry_point("agent")
 workflow.set_finish_point("agent")
 
 # Memory
-memory = MemorySaver()
+memory = InMemorySaver()
 
 # Compile
-agent_app = workflow.compile()
+agent_app = workflow.compile(checkpointer=memory)
 
 print(agent_app.get_graph().draw_ascii())
         
 def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_id: str = "1"):
     
     config = {"configurable": {"thread_id": thread_id}, "max_tokens": 32768}
+    print(f"Thread ID: {config.get('configurable').get('thread_id')}")
 
     system_prompt = (
         "Tu es un assistant spécialisé dans l'analyse des factures françaises. "
@@ -62,9 +63,8 @@ def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_
         ])
     else:
         human_message = HumanMessage(content=query)
-
     try:
-        result = agent_app.invoke({"messages": [system_message, human_message]}, config)
+        result = agent_app.invoke({"messages": [human_message]}, config)
         print(result["messages"])
     except Exception as e:
         import traceback
@@ -72,12 +72,10 @@ def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_
         print(traceback.format_exc())
         return "Une erreur est survenue lors de la génération de la réponse. Veuillez réessayer."
 
-    # Combine tool + AI outputs if available
-    final_parts = []
+    # Return only the final AI response
     for msg in reversed(result["messages"]):
-        if isinstance(msg, ToolMessage) or isinstance(msg, AIMessage):
-            final_parts.append(msg.content.strip())
-    if final_parts:
-        return "\n\n---\n\n".join(reversed(final_parts))
+        if isinstance(msg, AIMessage):
+            return msg.content.strip()
 
     return "Je n'ai pas pu générer de réponse cette fois."
+
