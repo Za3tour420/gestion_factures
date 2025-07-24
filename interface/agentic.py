@@ -21,7 +21,7 @@ from init_llm import llm
 web_search_tool = init_web_search_tool()
 
 # Tools dictionary
-tools = [web_search_tool, get_french_vat_from_bofip, rag_answer_tool]
+tools = [web_search_tool, get_french_vat_from_bofip, rag_management_rules, rag_usage_cases]
 
 # Initialize StateGraph
 workflow = StateGraph(MessagesState)

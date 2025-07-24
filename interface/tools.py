@@ -50,18 +50,18 @@ def get_french_vat_from_bofip(url: str) -> str:
 #********************************************************************#
 
 @tool("search_regles_de_gestion")
-def rag_answer_tool(question: str, rule_id: Optional[str] = None) -> str:
+def rag_management_rules(question: str, rule_id: Optional[str] = None) -> str:
     """
-    Utilise la base de règles ChromaDB pour répondre aux questions sur les conformités et règles de gestion des e-invoices, etc.
+    Utilise la base de règles de gestion ChromaDB pour répondre aux questions sur les conformités et règles de gestion des e-invoices, etc.
     Déduire rule_id de la question si elle est mentionnée. Elle est de la forme GX.XX.
     Questionner la base en résumant le contenu de la requête.
     Retourner une seule réponse finale et détaillée pour tous les recherches.
     """
-    print(f"🔎 RAG tool called with: {question} | rule ID: {rule_id}")
+    print(f"🔎 RAG management rules tool called with: {question} | rule ID: {rule_id}")
     
     # Load persisted vectorstore + embeddings
     embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = Chroma(persist_directory="./chroma_store", embedding_function=embedder)
+    vectorstore = Chroma(persist_directory="./knowledge_bases/regles_gestion", embedding_function=embedder)
     retriever = vectorstore.as_retriever(search_type="mmr", k=5)
     
     # Get docs
@@ -69,10 +69,39 @@ def rag_answer_tool(question: str, rule_id: Optional[str] = None) -> str:
         docs = retriever.invoke(question, filter={"id_règle": rule_id})
     else:
         docs = retriever.invoke(question)
+        
     print(f"✅ Retrieved {len(docs)} docs")
+    
     for doc in docs:
         print("\n",doc)
     
     return "\n\n---\n\n".join(doc.page_content for doc in docs)
 
+@tool("search_cas_usage")
+def rag_usage_cases(question: str, case_id: Optional[str] = None) -> str:
+    """
+    Utilise la base de cas d'usage ChromaDB pour répondre aux questions sur les cas d'usage de la facturation électronique.
+    Déduire case_id de la question si elle est mentionnée. Example: "étapes cas n°4", donc case_id="4".
+    Questionner la base en résumant le contenu de la requête.
+    Retourner une seule réponse finale et détaillée pour tous les recherches.
+    """
+    print(f"🔎 RAG usage cases tool called with: {question} | case ID: {case_id}")
+    
+    # Load persisted vectorstore + embeddings
+    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    vectorstore = Chroma(persist_directory="./knowledge_bases/usage_cases", embedding_function=embedder)
+    retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 5, "fetch_k": 20})
+    
+    # Get docs
+    if case_id:
+        docs = retriever.invoke(question, filter={"cas": str(case_id)})
+    else:
+        docs = retriever.invoke(question)
+        
+    print(f"✅ Retrieved {len(docs)} docs")
+    
+    for doc in docs:
+        print("\n",doc)
+    
+    return "\n\n---\n\n".join(doc.page_content for doc in docs)
 
