@@ -4,14 +4,23 @@ import io
 import fitz
 from PIL import Image
 
-def get_nim_api_key():
-    return os.environ.get("NVIDIA_API_MISTRAL_MEDIUM3_INSTRUCT") # mistralai/mistral-medium-3-instruct
+from dotenv import load_dotenv
+
+# Load env variables
+load_dotenv()
+
 def get_mistral_small_api_key():
-    return os.environ.get("NVIDIA_API_MISTRAL_SMALL31_INSTRUCT") # mistralai/mistral-small-3.1-24b-instruct-2503
-def get_tavily_api_key():
-    return os.environ.get("TAVILY_API_KEY")
+    key = os.getenv("NVIDIA_API_MISTRAL_SMALL31_INSTRUCT") # mistralai/mistral-small-3.1-24b-instruct-2503
+    if not key:
+        raise EnvironmentError("Missing NVIDIA_API_MISTRAL_SMALL31_INSTRUCT in environment.")
+    return key
+
 def get_google_api_keys():
-    return os.environ.get("GOOGLE_API_KEY"), os.environ.get("GOOGLE_CSE_ID")
+    google_key = os.getenv("GOOGLE_API_KEY")
+    cse_id = os.getenv("GOOGLE_CSE_ID")
+    if not google_key or not cse_id:
+        raise EnvironmentError("Missing GOOGLE_API_KEY or GOOGLE_CSE_ID in environment.")
+    return google_key, cse_id
     
 def encode_image(image_path: str):
     with open(image_path, "rb") as f:
