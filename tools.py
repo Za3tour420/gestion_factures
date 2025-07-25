@@ -16,7 +16,7 @@ from typing import Optional
 GOOGLE_API_KEY, GOOGLE_CSE_ID = get_google_api_keys()
 
 #********************************************************************#
-# Web search tool
+# Web search tools
 #********************************************************************#
 web_search_api_wrapper = GoogleSearchAPIWrapper(
         google_api_key=GOOGLE_API_KEY,
@@ -27,11 +27,13 @@ def init_web_search_tool():
     return GoogleSearchRun(api_wrapper=web_search_api_wrapper)
     
 @tool
-def get_french_vat_from_bofip(url: str) -> str:
+def get_url_content(url: str) -> str:
     """
-    Extrait les informations principales sur les taux de TVA à partir de la page BOFiP officielle.
-    Résumer et bien formuler le contenu du (des) résultat(s) trouvé(s) sur {url}.
+    Extraire les informations principales sur les taux de TVA à partir de {url} fourni.
+    Résumer et bien formuler le contenu du (des) résultat(s) trouvé(s).
     """
+    
+    print(f"Scraping tool called with | URL: {url}")
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
@@ -40,13 +42,10 @@ def get_french_vat_from_bofip(url: str) -> str:
         content = page.inner_text("body")
         browser.close()
 
-    if content:
-        return content
-    else:
-        return None
+    return content.strip() if content else "Aucune information extraite de la page."
 
 #********************************************************************#
-# RAG tool
+# RAG tools
 #********************************************************************#
 
 @tool("search_regles_de_gestion")
@@ -105,3 +104,54 @@ def rag_usage_cases(question: str, case_id: Optional[str] = None) -> str:
     
     return "\n\n---\n\n".join(doc.page_content for doc in docs)
 
+#********************************************************************#
+# BOFIP tool
+#********************************************************************#
+
+@tool
+def extract_bofip_updates():
+    """
+    Extraire les taux de TVA à partir des URL du site BOFIP.
+    Résumer le contenu final et retourner une réponse concise et claire.
+    """
+    print("BOFIP updates tool called")
+    
+    content_list = []
+    
+    url_list = ["https://bofip.impots.gouv.fr/bofip/1376-PGP.html/identifiant=BOI-TVA-LIQ-20-20140919",
+    "https://bofip.impots.gouv.fr/bofip/1377-PGP.html/identifiant=BOI-TVA-LIQ-30-20230823",
+    "https://bofip.impots.gouv.fr/bofip/1378-PGP.html/identifiant=BOI-TVA-LIQ-40-20230628"
+    ]
+    
+    # Init driver
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+    
+        # Actual loop
+        for url in url_list:
+            page.goto(url, timeout=60000)
+            page.wait_for_load_state("networkidle") # Wait for JS content to load
+            
+            links = page.query_selector_all("a")
+            matched_links = []
+            
+            for link in links:
+                text = link.inner_text().strip()
+                href = link.get_attribute("href")
+                if "BOI-TVA-LIQ" in text and href:
+                    full_url = href if href.startswith("http") else f"https://bofip.impots.gouv.fr{href}"
+                    matched_links.append(full_url)
+            
+            for sub_url in matched_links[:2]:
+                try:
+                    page.goto(sub_url, timeout=60000)
+                    page.wait_for_load_state("networkidle")
+                    content = page.inner_text("body")
+                    content_list.append(f"\n\n---\n\n🔗 {sub_url}\n\n{content}")
+                except Exception as e:
+                    content_list.append(f"\n\n---\n\n❌ Erreur pour {sub_url}: {e}")
+
+        browser.close()
+
+    return "\n\n".join(content_list) if content_list else "Aucune information extraite."

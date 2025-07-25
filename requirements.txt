@@ -20,3 +20,4 @@ flask
 playwright
 pyngrok
 python-dotenv
+grandalf
