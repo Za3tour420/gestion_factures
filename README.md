@@ -1,37 +1,40 @@
-# 🐍 Python Project Setup
+# 🐍 Python Project Setup (Linux)
 
-## 1. Create and Activate a Virtual Environment (Linux)
+## 1. Clone the repository (make sure you have Git installed on your machine)
+
+```bash
+git clone https://github.com/Za3tour420/gestion_factures.git
+cd gestion_factures
+```
+
+## 2. Create and activate a virtual environment
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-## 2. Export API Keys as Environment Variables
-
+## 3. Configure environment variables (replace with your API keys)
 ```bash
-export GOOGLE_CSE_ID="your_google_cse_id"
-export GOOGLE_API_KEY="your_google_api_key"
-export NVIDIA_API_MISTRAL_MEDIUM3_INSTRUCT="your_nvidia_api_key"
-```
-To make them persistent for the current user, run the following:
-
-```bash
-echo 'export GOOGLE_CSE_ID="your_google_cse_id"' >> ./~bashrc
-echo 'export GOOGLE_API_KEY="your_google_api_key"' >> ./~bashrc
-echo 'export NVIDIA_API_MISTRAL_MEDIUM3_INSTRUCT="your_nvidia_api_key"' >> ./~bashrc
-
-source ./~bashrc
+cp .env.example .env
+gedit .env  # or use your preferred editor
 ```
 
-## 3. Install Dependencies
-```bash
-pip install -r requirements.txt
+```env
+GOOGLE_API_KEY=your-google-api-key
+GOOGLE_CSE_ID=your-google-cse-id
+NVIDIA_API_MISTRAL_MED=your-nvidia-api-key
 ```
 
-## 4. Run the Project
+## 4. Run setup_all.py to install all dependencies (root preferred)
 ```bash
-python3 agentic.py
+python setup_all.py
+```
+Note: A package requires root access to install its dependencies. If you install without root, this step will be skipped and you have to install them manually.
+
+## 5. Run the project
+```bash
+python3 app.py
 ```
 
 ## 5. Actual Pipeline
