@@ -37,5 +37,5 @@ Note: A package requires root access to install its dependencies. If you install
 python3 app.py
 ```
 
-## 5. Actual Pipeline
+## 6. Agent Pipeline
 ![image](pipeline.png)
