@@ -1,6 +1,6 @@
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 
-from utils import get_mistral_small_api_key
+from core.utils import get_mistral_small_api_key
 
 # Instantiate the model
 llm = ChatNVIDIA(

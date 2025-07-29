@@ -1,38 +1,36 @@
+# backend/routes.py
+
+from flask import Blueprint, render_template, request, session, jsonify
+from agent.agentic import user_agent_multiturn
+from core.utils import encode_pdf_from_stream
 import uuid
-from flask import Flask, render_template, request, session, jsonify
-import os
-from agentic import user_agent_multiturn
-from utils import encode_pdf_from_stream
 
-import traceback
+main_routes = Blueprint("main_routes", __name__)
 
-app = Flask(__name__)
-app.secret_key = os.urandom(15).hex()
-app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'jpg', 'jpeg', 'png', 'webp'}
+def allowed_file(filename, allowed_extensions):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
-
-@app.route("/")
+@main_routes.route("/")
 def index():
     if "thread_id" not in session:
         session["thread_id"] = str(uuid.uuid4())
         session["chat_history"] = []
     return render_template("index.html", history=session.get("chat_history", []))
 
-@app.route("/chat", methods=["POST"])
+@main_routes.route("/chat", methods=["POST"])
 def chat():
     if "thread_id" not in session:
         session["thread_id"] = str(uuid.uuid4())
         session["chat_history"] = []
     
     query = request.form.get("query", "").strip()
-    uploaded_file = request.files.get("pdf") # file id in HTML, not actual type!
+    uploaded_file = request.files.get("pdf")
     
-    if uploaded_file and allowed_file(uploaded_file.filename):
+    allowed_extensions = {"pdf", "jpg", "jpeg", "png", "webp"}
+
+    if uploaded_file and allowed_file(uploaded_file.filename, allowed_extensions):
         file_bytes = uploaded_file.read()
         base64_page = encode_pdf_from_stream(file_bytes)
-        
         response = user_agent_multiturn(query, base64_page, session["thread_id"])
     else:
         response = user_agent_multiturn(query, None, session["thread_id"])
@@ -41,13 +39,3 @@ def chat():
     session["chat_history"].append({"role": "assistant", "content": response})
     
     return jsonify({"history": session["chat_history"]})
-        
-    """except Exception as e:
-        print(f"[FLASK ERROR] {traceback.format_exc()}")
-        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500"""
-    
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
-

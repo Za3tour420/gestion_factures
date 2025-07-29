@@ -28,7 +28,7 @@ def install_playwright():
 
 def init_rag():
     print("Initializing vector stores for RAG...")
-    run([sys.executable, "init_rag.py"])
+    run([sys.executable, "rag/init_rag.py"])
 
 if __name__ == "__main__":
     try:

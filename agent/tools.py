@@ -8,9 +8,12 @@ from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from langchain_core.tools import tool
-from utils import get_google_api_keys
+
+from core.utils import get_google_api_keys
+from config import KNOWLEDGE_BASE_DIR
 
 from typing import Optional
+import os
 
 # Get API keys
 GOOGLE_API_KEY, GOOGLE_CSE_ID = get_google_api_keys()
@@ -47,6 +50,8 @@ def get_url_content(url: str) -> str:
 #********************************************************************#
 # RAG tools
 #********************************************************************#
+# Load embedder once
+embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 @tool("search_regles_de_gestion")
 def rag_management_rules(question: str, rule_id: Optional[str] = None) -> str:
@@ -58,9 +63,8 @@ def rag_management_rules(question: str, rule_id: Optional[str] = None) -> str:
     """
     print(f"🔎 RAG management rules tool called with: {question} | rule ID: {rule_id}")
     
-    # Load persisted vectorstore + embeddings
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = Chroma(persist_directory="./knowledge_bases/regles_gestion", embedding_function=embedder)
+    # Load persisted vectorstore
+    vectorstore = Chroma(persist_directory=os.path.join(KNOWLEDGE_BASE_DIR, 'regles_gestion'), embedding_function=embedder)
     retriever = vectorstore.as_retriever(search_type="mmr", k=5)
     
     # Get docs
@@ -86,9 +90,8 @@ def rag_usage_cases(question: str, case_id: Optional[str] = None) -> str:
     """
     print(f"🔎 RAG usage cases tool called with: {question} | case ID: {case_id}")
     
-    # Load persisted vectorstore + embeddings
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = Chroma(persist_directory="./knowledge_bases/usage_cases", embedding_function=embedder)
+    # Load persisted vectorstore
+    vectorstore = Chroma(persist_directory=os.path.join(KNOWLEDGE_BASE_DIR, 'usage_cases'), embedding_function=embedder)
     retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 5, "fetch_k": 20})
     
     # Get docs
@@ -112,6 +115,7 @@ def rag_usage_cases(question: str, case_id: Optional[str] = None) -> str:
 def extract_bofip_updates():
     """
     Extraire les taux de TVA à partir des URL du site BOFIP.
+    Si un ou des taux spécifiques sont mentionnés, ne retourner que le contenu de ces derniers.
     Résumer le contenu final et retourner une réponse concise et claire.
     """
     print("BOFIP updates tool called")

@@ -34,7 +34,7 @@ Note: A package requires root access to install its dependencies. If you install
 
 ## 5. Run the project
 ```bash
-python3 app.py
+python3 run.py
 ```
 
 ## 6. Agent Pipeline
