@@ -30,6 +30,12 @@ h1 {
   box-sizing: border-box;
 }
 
+.chat-area img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 .message {
   margin-bottom: 15px;
 }

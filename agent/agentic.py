@@ -1,4 +1,6 @@
-from typing import Annotated, Optional
+# agentic.py
+
+from typing import Annotated, Optional, List
 from typing_extensions import TypedDict
 
 import base64
@@ -27,7 +29,8 @@ registered_tools = [
     get_url_content,
     rag_management_rules,
     rag_usage_cases,
-    extract_bofip_updates
+    extract_bofip_updates,
+    save_to_excel
 ]
 
 def build_graph(memory: InMemorySaver):
@@ -49,7 +52,7 @@ memory = InMemorySaver()
 agent_app = build_graph(memory)
 logger.info("Agent started!")
         
-def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_id: str = "1"):
+def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_id: str = "1", messages_to_invoke: Optional[List] = None): # Added messages_to_invoke
     
     config = {
         "configurable": {"thread_id": thread_id},
@@ -57,14 +60,17 @@ def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_
     }
     logging.info("Thread ID for conversation: %s", thread_id)
 
-    # Build human message
-    human_message = HumanMessage(content=[
-        {"type": "text", "text": query},
-        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
-    ]) if base64_image else HumanMessage(content=query)
+    # If messages_to_invoke are provided, use them directly
+    # Otherwise, construct the human message as before
+    if messages_to_invoke is None:
+        human_message = HumanMessage(content=[
+            {"type": "text", "text": query},
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+        ]) if base64_image else HumanMessage(content=query)
+        messages_to_invoke = [human_message] # Wrap in a list for invocation
 
     try:
-        result = agent_app.invoke({"messages": [human_message]}, config)
+        result = agent_app.invoke({"messages": messages_to_invoke}, config) # Use messages_to_invoke
         print(result["messages"])
     except Exception as e:
         logging.error(f"Error during agent invocation: {str(e)}", exc_info=True)
@@ -77,3 +83,29 @@ def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_
 
     return "Je n'ai pas pu générer de réponse cette fois."
 
+def user_agent_multiturn_stream(query: str, base64_image: Optional[str] = None, thread_id: str = "1", messages_to_invoke: Optional[List] = None): # Added messages_to_invoke
+
+    config = {
+        "configurable": {"thread_id": thread_id},
+        "max_tokens": 32768
+    }
+
+    logging.info("Thread ID for conversation: %s", thread_id)
+
+    # If messages_to_invoke are provided, use them directly
+    # Otherwise, construct the human message as before
+    if messages_to_invoke is None:
+        human_message = HumanMessage(content=[
+            {"type": "text", "text": query},
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+        ]) if base64_image else HumanMessage(content=query)
+        messages_to_invoke = [human_message] # Wrap in a list for invocation
+
+
+    try:
+        for msg, _ in agent_app.stream({"messages": messages_to_invoke}, config, stream_mode="messages"): # Use messages_to_invoke
+            if msg.content and isinstance(msg, AIMessage):
+                yield msg.content.strip()
+    except Exception as e:
+        logging.error("Error during streaming: %s", str(e), exc_info=True)
+        yield "Une erreur est survenue lors de la génération de la réponse."

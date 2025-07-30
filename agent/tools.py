@@ -10,7 +10,10 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.tools import tool
 
 from core.utils import get_google_api_keys
-from config import KNOWLEDGE_BASE_DIR
+from config import KNOWLEDGE_BASE_DIR, SAVE_INVOICES_DIR
+
+import pandas as pd
+from datetime import datetime
 
 from typing import Optional
 import os
@@ -29,14 +32,15 @@ web_search_api_wrapper = GoogleSearchAPIWrapper(
 def init_web_search_tool():
     return GoogleSearchRun(api_wrapper=web_search_api_wrapper)
     
-@tool
+@tool("summarize_url_content")
 def get_url_content(url: str) -> str:
     """
     Extraire les informations principales sur les taux de TVA à partir de {url} fourni.
+    Si aucun URL n'est fourni, ne pas appeler cet outil.
     Résumer et bien formuler le contenu du (des) résultat(s) trouvé(s).
     """
     
-    print(f"Scraping tool called with | URL: {url}")
+    print(f"Summarizer tool called with | URL: {url}")
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
@@ -111,14 +115,13 @@ def rag_usage_cases(question: str, case_id: Optional[str] = None) -> str:
 # BOFIP tool
 #********************************************************************#
 
-@tool
+@tool("bofip_products_services")
 def extract_bofip_updates():
     """
-    Extraire les taux de TVA à partir des URL du site BOFIP.
-    Si un ou des taux spécifiques sont mentionnés, ne retourner que le contenu de ces derniers.
+    Extraire les produits et services des taux demandés à partir des URL du site BOFIP.
     Résumer le contenu final et retourner une réponse concise et claire.
     """
-    print("BOFIP updates tool called")
+    print("BOFIP checker tool called")
     
     content_list = []
     
@@ -159,3 +162,29 @@ def extract_bofip_updates():
         browser.close()
 
     return "\n\n".join(content_list) if content_list else "Aucune information extraite."
+
+#********************************************************************#
+# Excel save tool
+#********************************************************************#
+
+def save_invoice_to_excel(data: dict, output_dir=SAVE_INVOICES_DIR, filename_prefix="facture"):
+    os.makedirs(output_dir, exist_ok=True)
+    
+    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"{filename_prefix}_{now}.xlsx"
+    filepath = os.path.join(output_dir, filename)
+
+    df = pd.DataFrame([data])  # convert single dict to one-row DataFrame
+    df.to_excel(filepath, index=False)
+    
+@tool("save_to_excel")
+def save_to_excel(data: dict) -> str:
+    """
+    Sauvegarde les détails extraits d'une facture en un fichier Excel.
+    Créer le dictionnaire des données.
+    """
+    print("Saving to Excel tool called with:\n", data)
+    save_invoice_to_excel(data)
+    
+    return "File saved successfully!"
+    
