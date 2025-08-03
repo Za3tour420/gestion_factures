@@ -27,8 +27,16 @@ h1 {
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   overflow-y: auto;
   padding: 15px;
-  padding-bottom: 160px;
+  padding-bottom: 100px;
   box-sizing: border-box;
+}
+
+.chat-area img {
+  max-width: 50%;
+  height: auto;
+  border-radius: 5px;
+  margin-top: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .image-preview {
@@ -82,11 +90,11 @@ h1 {
 }
 
 .chat-input textarea {
-  width: 100%;
+  width: auto;
   resize: none;
   padding: 10px;
   font-size: 16px;
-  border-radius: 5px;
+  border-radius: 10px;
   border: 1px solid #ccc;
   overflow-y: auto;
   max-height: 150px;
@@ -108,6 +116,11 @@ h1 {
 
 .chat-input button:hover {
   background-color: #0056b3;
+}
+
+.chat-input button:disabled {
+  background-color: #0056b3;
+  cursor: not-allowed;
 }
 
 .loading-spinner {
