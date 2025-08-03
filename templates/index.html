@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>Invoice Agent</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
@@ -14,127 +14,14 @@
     </div>
 
         <form id="chatForm" method="POST" enctype="multipart/form-data" class="chat-input">
-            <textarea id="query" name="query" placeholder="Posez votre question..." required></textarea><br />
-            <input id="pdf" type="file" name="pdf" accept=".pdf, .jpg, .jpeg, .png, .webp" multiple/><br />
+            <div id="previewContainer" class="image-preview"></div>
+            <textarea id="query" name="query" placeholder="Posez votre question..." required></textarea>
+            <input id="pdf" type="file" name="pdf" accept=".pdf, .jpg, .jpeg, .png, .webp" multiple/>
             <button type="submit">Analyser</button>
         </form>
 
 
-    <script>
-    const chatArea = document.getElementById("chatArea");
-
-    function scrollToBottom() {
-      chatArea.scrollTop = chatArea.scrollHeight;
-    }
-    
-    document.getElementById("chatForm").addEventListener("submit", async function(event) {
-      event.preventDefault();
-
-      const form = new FormData();
-      const query = document.getElementById("query").value;
-      form.append("query", query);
-
-      const fileInput = document.getElementById("pdf");
-      if (fileInput.files.length > 0) {
-          form.append("pdf", fileInput.files[0]);
-      }
-      
-      // Clear inputs
-      document.getElementById("query").value = "";
-      document.getElementById("pdf").value = "";
-      
-      const div = document.createElement("div");
-      div.className = `user`;
-      div.innerHTML = `<strong>User:</strong><div>${marked.parse(query)}</div>`;
-      chatArea.appendChild(div);
-
-      const response = await fetch("/chat", {
-          method: "POST",
-          body: form,
-      });
-
-      if (!response.ok) {
-          alert("Erreur côté serveur.");
-          return;
-      }
-
-      const data = await response.json();
-      const newMessages = data.history.slice(-1) // Last message (AIMessage)
-
-      newMessages.forEach(msg => {
-          const div = document.createElement("div");
-          div.className = `message ${msg.role}`;
-          div.innerHTML = `<strong>${msg.role.charAt(0).toUpperCase() + msg.role.slice(1)}:</strong><div>${marked.parse(msg.content)}</div>`;
-          chatArea.appendChild(div);
-      });
-
-      
-      scrollToBottom();
-    });
-    
-    // stream method needs more work
-    /*document.getElementById("chatForm").addEventListener("submit", async function(event) {
-      event.preventDefault();
-      
-      const form = new FormData();
-      const query = document.getElementById("query").value;
-      form.append("query", query);
-
-      const fileInput = document.getElementById("pdf");
-      if (fileInput.files.length > 0) {
-        form.append("pdf", fileInput.files[0]);
-      }
-        
-      // Clear inputs
-      document.getElementById("query").value = "";
-      document.getElementById("pdf").value = "";
-      
-      const div = document.createElement("div");
-      div.className = `message user`;
-      div.innerHTML = `<strong>Vous:</strong><div>${marked.parse(query)}</div>`;
-      chatArea.appendChild(div);
-      
-      const response = await fetch("/chat-stream", {
-        method: "POST",
-        body: form
-      });
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let buffer = "";
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        buffer += chunk;
-
-        let lines = buffer.split("\n\n");
-
-        // If the last chunk isn't complete, keep it in buffer
-        buffer = lines.pop();
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const content = line.replace("data: ", "").trim();
-            console.log(content);
-
-            // Skip empty keep-alive pings
-            if (content === "[DONE]" || content === "") continue;
-
-            const div = document.createElement("div");
-            div.className = `message assistant`;
-            div.innerHTML = `<strong>Assistant:</strong><div>${marked.parse(content)}</div>`;
-            chatArea.appendChild(div);
-            scrollToBottom();
-          }
-        }
-      }
-
-    });*/
-    
-    </script>
+    <script src="{{ url_for('static', filename='js/fetch_response.js') }}"></script>
 </body>
 </html>
 
