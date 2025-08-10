@@ -26,10 +26,10 @@ logger = logging.getLogger(__name__)
 # Tools dictionary
 registered_tools = [
     init_web_search_tool(),
-    get_url_content,
+    summarize_url_content,
     rag_management_rules,
     rag_usage_cases,
-    extract_bofip_updates,
+    extract_products_and_services,
     save_to_excel
 ]
 

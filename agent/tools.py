@@ -27,16 +27,16 @@ GOOGLE_API_KEY, GOOGLE_CSE_ID = get_google_api_keys()
 web_search_api_wrapper = GoogleSearchAPIWrapper(
         google_api_key=GOOGLE_API_KEY,
         google_cse_id=GOOGLE_CSE_ID,
-        k=1)
+        k=5)
 
 def init_web_search_tool():
     return GoogleSearchRun(api_wrapper=web_search_api_wrapper)
     
 @tool("summarize_url_content")
-def get_url_content(url: str) -> str:
+def summarize_url_content(url: str) -> str:
     """
     Extraire les informations principales sur les taux de TVA à partir de {url} fourni.
-    Si aucun URL n'est fourni, ne pas appeler cet outil.
+    Ne formulez aucun URL qui n'existe pas dans vos connaissances.
     Résumer et bien formuler le contenu du (des) résultat(s) trouvé(s).
     """
     
@@ -57,13 +57,13 @@ def get_url_content(url: str) -> str:
 # Load embedder once
 embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-@tool("search_regles_de_gestion")
+@tool("rag_management_rules")
 def rag_management_rules(question: str, rule_id: Optional[str] = None) -> str:
     """
     Utilise la base de règles de gestion ChromaDB pour répondre aux questions sur les conformités et règles de gestion des e-invoices, etc.
-    Déduire rule_id de la question si elle est mentionnée. Elle est de la forme GX.XX.
-    Questionner la base en résumant le contenu de la requête.
-    Retourner une seule réponse finale et détaillée pour tous les recherches.
+    Déduis rule_id de la question si elle est mentionnée. Elle est de la forme GX.XX.
+    Questionne la base en résumant le contenu de la requête.
+    Retourne une seule réponse finale, détaillée et pas trop longue.
     """
     print(f"🔎 RAG management rules tool called with: {question} | rule ID: {rule_id}")
     
@@ -84,13 +84,13 @@ def rag_management_rules(question: str, rule_id: Optional[str] = None) -> str:
     
     return "\n\n---\n\n".join(doc.page_content for doc in docs)
 
-@tool("search_cas_usage")
+@tool("rag_usage_cases")
 def rag_usage_cases(question: str, case_id: Optional[str] = None) -> str:
     """
     Utilise la base de cas d'usage ChromaDB pour répondre aux questions sur les cas d'usage de la facturation électronique.
-    Déduire case_id de la question si elle est mentionnée. Example: "étapes cas n°4", donc case_id="4".
-    Questionner la base en résumant le contenu de la requête.
-    Retourner une seule réponse finale et détaillée pour tous les recherches.
+    Déduis case_id de la question si elle est mentionnée. Example: "étapes cas n°4", donc case_id="4".
+    Questionne la base en résumant le contenu de la requête.
+    Retourne une seule réponse finale, détaillée et pas trop longue.
     """
     print(f"🔎 RAG usage cases tool called with: {question} | case ID: {case_id}")
     
@@ -115,11 +115,12 @@ def rag_usage_cases(question: str, case_id: Optional[str] = None) -> str:
 # BOFIP tool
 #********************************************************************#
 
-@tool("bofip_products_services")
-def extract_bofip_updates():
+@tool("extract_products_and_services")
+def extract_products_and_services():
     """
     Extraire les produits et services des taux demandés à partir des URL du site BOFIP.
     Résumer le contenu final et retourner une réponse concise et claire.
+    Toujours inclure les liens sources.
     """
     print("BOFIP checker tool called")
     
