@@ -1,27 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1" />
     <title>Invoice Agent</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="container">
-      <h1>🧾 Agent Factures</h1>
+        <div class="header">
+            <h1>🧾 Agent Factures</h1>
+            <div class="subtitle">Analysez vos factures intelligemment</div>
+        </div>
         
-      <div id="chatArea" class="chat-area"></div>
+        <div id="chatArea" class="chat-area">
+            <div class="empty-state">
+                <div class="icon">💡</div>
+                <div>Posez une question sur vos factures ou téléchargez un document pour commencer</div>
+                <div class="example-questions">
+                    <div class="example-question" onclick="setQuery('Quelle est la date d\'échéance de cette facture ?')">
+                        📅 Quelle est la date d'échéance de cette facture ?
+                    </div>
+                    <div class="example-question" onclick="setQuery('Quel est le montant total TTC ?')">
+                        💰 Quel est le montant total TTC ?
+                    </div>
+                    <div class="example-question" onclick="setQuery('Quels sont les articles facturés ?')">
+                        📋 Quels sont les articles facturés ?
+                    </div>
+                    <div class="example-question" onclick="setQuery('Y a-t-il des erreurs dans cette facture ?')">
+                        🔍 Y a-t-il des erreurs dans cette facture ?
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-        <form id="chatForm" method="POST" enctype="multipart/form-data" class="chat-input">
-            <div id="previewContainer" class="image-preview"></div>
-            <textarea id="query" name="query" placeholder="Posez votre question..."></textarea>
-            <input id="pdf" type="file" name="pdf" accept=".pdf, .jpg, .jpeg, .png, .webp" multiple/>
-            <button type="submit" id="submitBtn">Analyser</button>
-        </form>
-
+    
+    <form id="chatForm" method="POST" enctype="multipart/form-data" class="chat-input">
+        <div id="previewContainer" class="image-preview"></div>
+        <textarea id="query" name="query" placeholder="Décrivez votre question sur la facture..." rows="2"></textarea>
+        
+        <div class="file-upload-wrapper">
+            <label for="pdf" class="custom-file-btn">📎 Choisir fichier</label>
+            <button type="button" id="clearFilesBtn">🗑️ Effacer</button>
+        </div>
+        <input id="pdf" type="file" name="pdf" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple aria-label="Upload PDF ou image" style="display:none;"/>
+        
+        <button type="submit" id="submitBtn">🚀 Analyser</button>
+    </form>
 
     <script src="{{ url_for('static', filename='js/fetch_response.js') }}"></script>
 </body>
 </html>
-
