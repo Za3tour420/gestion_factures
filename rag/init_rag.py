@@ -2,6 +2,13 @@ import pandas as pd
 import fitz  # PyMuPDF
 import re
 
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from config import KNOWLEDGE_BASE_DIR
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -37,7 +44,7 @@ embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6
 vectorstore = Chroma.from_documents(
     documents=documents,
     embedding=embedder,
-    persist_directory="./knowledge_bases/regles_gestion"  # directory to save persistent index
+    persist_directory=os.path.join(KNOWLEDGE_BASE_DIR, 'regles_gestion') # directory to save persistent index
 )
 
 ####################################################################
@@ -86,6 +93,6 @@ chunked_docs = splitter.split_documents(documents)
 vectorstore = Chroma.from_documents(
     documents=chunked_docs,
     embedding=embedder,
-    persist_directory="./knowledge_bases/usage_cases"
+    persist_directory=os.path.join(KNOWLEDGE_BASE_DIR, "usage_cases")
 )
 
