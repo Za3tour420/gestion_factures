@@ -6,7 +6,7 @@ const fileInput = document.getElementById("pdf");
 const clearFilesBtn = document.getElementById("clearFilesBtn");
 const previewContainer = document.getElementById("previewContainer");
 
-let messageCount = 0;
+let isSubmitting = false;
 
 previewContainer.innerHTML = "";
 window.addEventListener("DOMContentLoaded", updateButtonState);
@@ -36,7 +36,7 @@ function scrollToBottom() {
 function updateButtonState() {
     const hasText = query.value.trim().length > 0;
     const hasFiles = fileInput.files.length > 0;
-    submitBtn.disabled = !(hasText || hasFiles);
+    submitBtn.disabled = !(hasText || hasFiles) || isSubmitting;
 }
 
 function showTypingIndicator() {
@@ -99,17 +99,21 @@ fileInput.addEventListener("change", () => {
 // Submit form
 document.getElementById("chatForm").addEventListener("submit", async function(event) {
     event.preventDefault();
+    
+    if (isSubmitting) return;
+    
+    isSubmitting = true;
     hideEmptyState();
     
     const form = new FormData();
-    form.append("query", query.value);
+    const userQuery = query.value;
+    form.append("query", userQuery);
     
     if (fileInput.files.length > 0) {
         form.append("pdf", fileInput.files[0]);
     }
     
     // Add user message
-    messageCount++;
     const userDiv = document.createElement("div");
     userDiv.className = "message user";
     
@@ -128,7 +132,7 @@ document.getElementById("chatForm").addEventListener("submit", async function(ev
     
     userDiv.innerHTML = `
         <div class="message-header">Vous</div>
-        <div class="content">${marked.parse(query.value) || '<em>Document téléchargé</em>'}</div>
+        <div class="content">${marked.parse(userQuery) || '<em>Document téléchargé</em>'}</div>
     `;
     
     if (imageHtml) {
@@ -162,17 +166,20 @@ document.getElementById("chatForm").addEventListener("submit", async function(ev
         }
         
         const data = await response.json();
-        const newMessages = data.history.slice(-1);
         
-        newMessages.forEach(msg => {
+        // Simply get the last message from the server response (which should be the assistant's response)
+        const lastMessage = data.history[data.history.length - 1];
+        
+        // Add only if it's an assistant message (safety check)
+        if (lastMessage && lastMessage.role === 'assistant') {
             const div = document.createElement("div");
-            div.className = `message ${msg.role}`;
+            div.className = "message assistant";
             div.innerHTML = `
-                <div class="message-header">${msg.role === 'assistant' ? 'Assistant' : 'Vous'}</div>
-                <div class="content">${marked.parse(msg.content)}</div>
+                <div class="message-header">Assistant</div>
+                <div class="content">${marked.parse(lastMessage.content)}</div>
             `;
             chatArea.appendChild(div);
-        });
+        }
         
         scrollToBottom();
         
@@ -186,15 +193,18 @@ document.getElementById("chatForm").addEventListener("submit", async function(ev
         `;
         chatArea.appendChild(errorDiv);
         scrollToBottom();
+    } finally {
+        isSubmitting = false;
+        updateButtonState();
     }
 });
 
-// Enter key to submit (Ctrl+Enter for new line)
+// Enter key to submit (Shift+Enter for new line)
 query.addEventListener("keydown", function(event) {
     if (event.key === "Enter" && !event.shiftKey && !event.ctrlKey) {
         event.preventDefault();
-        if (!submitBtn.disabled) {
-            document.getElementById("chatForm").dispatchEvent(new Event('submit'));
+        if (!submitBtn.disabled && !isSubmitting) {
+            document.getElementById("chatForm").requestSubmit();
         }
     }
 });
