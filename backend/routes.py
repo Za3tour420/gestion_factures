@@ -1,7 +1,7 @@
 # backend/routes.py
 
 from flask import Blueprint, render_template, request, session, jsonify, Response, stream_with_context, current_app
-from agent.agentic import user_agent_multiturn, user_agent_multiturn_stream
+from agent.agentic import user_agent_multiturn
 from core.utils import encode_pdf_from_stream
 import uuid
 from langchain_core.messages import SystemMessage, HumanMessage # Import SystemMessage and HumanMessage
@@ -29,7 +29,7 @@ def chat():
         session.permanent = True
 
     query = request.form.get("query", "").strip()
-    uploaded_file = request.files.get("pdf")
+    uploaded_file = request.files.get("fileUpload")
     allowed_extensions = current_app.config["ALLOWED_EXTENSIONS"]
     
 
@@ -70,8 +70,15 @@ Répondez toujours en français. Ne divulguez aucune information sensible.
     # It will be responsible for extracting the HumanMessage from this list.
     response = user_agent_multiturn(query, base64_page if 'base64_page' in locals() else None, session["thread_id"], messages_to_invoke=messages)
     
-    session["chat_history"].append({"role": "user", "content": query})
-    session["chat_history"].append({"role": "assistant", "content": response})
+    session["chat_history"].append({
+    "role": "user",
+    "content": query
+    })
+    
+    session["chat_history"].append({
+    "role": "assistant",
+    "content": response
+    })
     
     session.modified = True
     

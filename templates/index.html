@@ -14,24 +14,35 @@
         </div>
         
         <div id="chatArea" class="chat-area">
-            <div class="empty-state">
-                <div class="icon">💡</div>
-                <div>Posez une question sur vos factures ou téléchargez un document pour commencer</div>
-                <div class="example-questions">
-                    <div class="example-question" onclick="setQuery('Quelle est la date d\'échéance de cette facture ?')">
-                        📅 Quelle est la date d'échéance de cette facture ?
+            {% if history %}
+                {% for message in history %}
+                    <div class="message {{ message.role }}">
+                        <div class="message-header">
+                            {% if message.role == 'user' %}Vous{% else %}Assistant{% endif %}
+                        </div>
+                        <div class="content" data-content="{{ message.content | e }}"></div>
                     </div>
-                    <div class="example-question" onclick="setQuery('Quel est le montant total TTC ?')">
-                        💰 Quel est le montant total TTC ?
-                    </div>
-                    <div class="example-question" onclick="setQuery('Quels sont les articles facturés ?')">
-                        📋 Quels sont les articles facturés ?
-                    </div>
-                    <div class="example-question" onclick="setQuery('Y a-t-il des erreurs dans cette facture ?')">
-                        🔍 Y a-t-il des erreurs dans cette facture ?
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="icon">💡</div>
+                    <div>Posez une question sur vos factures ou téléchargez un document pour commencer</div>
+                    <div class="example-questions">
+                        <div class="example-question" onclick="setQuery('Quelle est la date d\'échéance de cette facture ?')">
+                            📅 Quelle est la date d'échéance de cette facture ?
+                        </div>
+                        <div class="example-question" onclick="setQuery('Quel est le montant total TTC ?')">
+                            💰 Quel est le montant total TTC ?
+                        </div>
+                        <div class="example-question" onclick="setQuery('Quels sont les articles facturés ?')">
+                            📋 Quels sont les articles facturés ?
+                        </div>
+                        <div class="example-question" onclick="setQuery('Y a-t-il des erreurs dans cette facture ?')">
+                            🔍 Y a-t-il des erreurs dans cette facture ?
+                        </div>
                     </div>
                 </div>
-            </div>
+            {% endif %}
         </div>
     </div>
     
@@ -40,14 +51,35 @@
         <textarea id="query" name="query" placeholder="Décrivez votre question sur la facture..." rows="2"></textarea>
         
         <div class="file-upload-wrapper">
-            <label for="pdf" class="custom-file-btn">📎 Choisir fichier</label>
+            <label for="fileUpload" class="custom-file-btn">📎 Choisir fichier</label>
             <button type="button" id="clearFilesBtn">🗑️ Effacer</button>
         </div>
-        <input id="pdf" type="file" name="pdf" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple aria-label="Upload PDF ou image" style="display:none;"/>
+        <input id="fileUpload" type="file" name="fileUpload" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple aria-label="Upload PDF ou image" style="display:none;"/>
         
         <button type="submit" id="submitBtn">🚀 Analyser</button>
     </form>
-
     <script src="{{ url_for('static', filename='js/fetch_response.js') }}"></script>
+    <script>
+        // Render markdown for existing messages and scroll to bottom on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatArea = document.getElementById('chatArea');
+            
+            // Render markdown for all existing messages
+            const messageContents = chatArea.querySelectorAll('.message .content');
+            messageContents.forEach(content => {
+                if (content.dataset.content) {
+                    content.innerHTML = marked.parse(content.dataset.content);
+                }
+            });
+            
+            // Scroll to bottom if there are messages
+            if (chatArea.children.length > 1 || !chatArea.querySelector('.empty-state')) {
+                chatArea.scrollTo({
+                    top: chatArea.scrollHeight,
+                    behavior: "smooth"
+                });
+            }
+        });
+    </script>
 </body>
 </html>

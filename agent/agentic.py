@@ -82,30 +82,3 @@ def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_
             return msg.content.strip()
 
     return "Je n'ai pas pu générer de réponse cette fois."
-
-def user_agent_multiturn_stream(query: str, base64_image: Optional[str] = None, thread_id: str = "1", messages_to_invoke: Optional[List] = None): # Added messages_to_invoke
-
-    config = {
-        "configurable": {"thread_id": thread_id},
-        "max_tokens": 32768
-    }
-
-    logging.info("Thread ID for conversation: %s", thread_id)
-
-    # If messages_to_invoke are provided, use them directly
-    # Otherwise, construct the human message as before
-    if messages_to_invoke is None:
-        human_message = HumanMessage(content=[
-            {"type": "text", "text": query},
-            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
-        ]) if base64_image else HumanMessage(content=query)
-        messages_to_invoke = [human_message] # Wrap in a list for invocation
-
-
-    try:
-        for msg, _ in agent_app.stream({"messages": messages_to_invoke}, config, stream_mode="messages"): # Use messages_to_invoke
-            if msg.content and isinstance(msg, AIMessage):
-                yield msg.content.strip()
-    except Exception as e:
-        logging.error("Error during streaming: %s", str(e), exc_info=True)
-        yield "Une erreur est survenue lors de la génération de la réponse."

@@ -2,7 +2,7 @@
 const chatArea = document.getElementById("chatArea");
 const submitBtn = document.getElementById("submitBtn");
 const query = document.getElementById("query");
-const fileInput = document.getElementById("pdf");
+const fileInput = document.getElementById("fileUpload");
 const clearFilesBtn = document.getElementById("clearFilesBtn");
 const previewContainer = document.getElementById("previewContainer");
 
@@ -110,7 +110,7 @@ document.getElementById("chatForm").addEventListener("submit", async function(ev
     form.append("query", userQuery);
     
     if (fileInput.files.length > 0) {
-        form.append("pdf", fileInput.files[0]);
+        form.append("fileUpload", fileInput.files[0]);
     }
     
     // Add user message
