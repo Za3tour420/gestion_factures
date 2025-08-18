@@ -1,10 +1,12 @@
 # backend/routes.py
 
-from flask import Blueprint, render_template, request, session, jsonify, Response, stream_with_context, current_app
+from flask import Blueprint, render_template, request, session, jsonify, Response, stream_with_context, current_app, send_from_directory
 from agent.agentic import user_agent_multiturn
 from core.utils import encode_pdf_from_stream
 import uuid
 from langchain_core.messages import SystemMessage, HumanMessage # Import SystemMessage and HumanMessage
+
+from config import SAVE_INVOICES_DIR
 
 main_routes = Blueprint("main_routes", __name__)
 
@@ -40,7 +42,7 @@ def chat():
 Fournissez des réponses précises et concises basées sur les documents et outils fournis ou vos connaissances. Si vous utiliser les outils externes, formulez une réponse claire et concise.
 **NE RÉPONDEZ QU'AUX QUESTION RELATIVES À LA FISCALITÉ, EN PARTICULIER LA FISCALITÉ FRANÇAISE ET LA FACTURE ÉLECTRONIQUE!**
 
-Si tous traitez une facture et que vous êtes demandés d'extraire ses informations, veuillez voir si l'utilisateur souhaite sauvegarder les détails dans un fichier Excel.
+Si tous traitez une facture et que vous êtes demandés d'extraire ses informations, veuillez voir si l'utilisateur souhaite sauvegarder les détails dans un fichier Excel. Puis, ne retourner que le lien du téléchargement après confirmation de l'utilisateur.
 
 Si vous cherchez une information dans une base des connaissances, retourner un résumé des informations trouvées et pertinentes à la requête de l'utilisateur.
 
@@ -58,7 +60,7 @@ Répondez toujours en français. Ne divulguez aucune information sensible.
         base64_page = encode_pdf_from_stream(file_bytes)
         human_message = HumanMessage(content=[
             {"type": "text", "text": query},
-            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_page}"}}
+            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_page}"}}
         ])
     else:
         human_message = HumanMessage(content=query)
@@ -83,3 +85,7 @@ Répondez toujours en français. Ne divulguez aucune information sensible.
     session.modified = True
     
     return jsonify({"history": session["chat_history"]})
+    
+@main_routes.route("/factures/<path:filename>")
+def download_excel(filename):
+    return send_from_directory(SAVE_INVOICES_DIR, filename, as_attachment=True)

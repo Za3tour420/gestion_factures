@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 # Load env variables
 load_dotenv()
 
+MAX_RESOLUTION = 768
+
 def get_mistral_small_api_key():
     key = os.getenv("NVIDIA_API_MISTRAL_SMALL31_INSTRUCT") # mistralai/mistral-small-3.1-24b-instruct-2503
     if not key:
@@ -22,9 +24,18 @@ def get_google_api_keys():
         raise EnvironmentError("Missing GOOGLE_API_KEY or GOOGLE_CSE_ID in environment.")
     return google_key, cse_id
     
+def resize_image(img: Image.Image, max_size: int = MAX_RESOLUTION) -> Image.Image:
+    if img.width > max_size or img.height > max_size:
+        img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+    return img
+    
 def encode_image(image_path: str):
-    with open(image_path, "rb") as f:
-        return base64.b64encode(f.read()).decode('utf-8')
+    with Image.open(image_path) as img:
+        img = resize_image(img)
+        
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
+        return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 def encode_pdf(pdf_path: str):
     b64_page = None
@@ -49,6 +60,8 @@ def encode_pdf_from_stream(file_stream):
             page = doc.load_page(0)
             pix = page.get_pixmap()
             img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            
+            img = resize_image(img)
 
             buffer = io.BytesIO()
             img.save(buffer, format="PNG")

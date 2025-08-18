@@ -21,6 +21,9 @@ import os
 # Get API keys
 GOOGLE_API_KEY, GOOGLE_CSE_ID = get_google_api_keys()
 
+# Base_url of the app
+BASE_URL = os.getenv("BASE_URL", "http://localhost:5000")
+
 #********************************************************************#
 # Web search tools
 #********************************************************************#
@@ -167,8 +170,13 @@ def extract_products_and_services():
 #********************************************************************#
 # Excel save tool
 #********************************************************************#
-
-def save_invoice_to_excel(data: dict, output_dir=SAVE_INVOICES_DIR, filename_prefix="facture"):
+@tool("save_to_excel")
+def save_to_excel(data: dict, output_dir=SAVE_INVOICES_DIR, filename_prefix="facture") -> str:
+    """
+    Sauvegarde les détails extraits d'une facture en un fichier Excel. 
+    Créer le dictionnaire des données. 
+    Retourner le lien de téléchargement pour l'utilisateur.
+    """
     os.makedirs(output_dir, exist_ok=True)
     
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -178,14 +186,7 @@ def save_invoice_to_excel(data: dict, output_dir=SAVE_INVOICES_DIR, filename_pre
     df = pd.DataFrame([data])  # convert single dict to one-row DataFrame
     df.to_excel(filepath, index=False)
     
-@tool("save_to_excel")
-def save_to_excel(data: dict) -> str:
-    """
-    Sauvegarde les détails extraits d'une facture en un fichier Excel.
-    Créer le dictionnaire des données.
-    """
-    print("Saving to Excel tool called with:\n", data)
-    save_invoice_to_excel(data)
+    download_url = f"{BASE_URL}/factures/{filename}"
     
-    return "File saved successfully!"
+    return f"Fichier crée avec success!\nTélécharger ici: {download_url}"
     

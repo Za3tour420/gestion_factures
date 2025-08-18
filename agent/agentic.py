@@ -65,7 +65,7 @@ def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_
     if messages_to_invoke is None:
         human_message = HumanMessage(content=[
             {"type": "text", "text": query},
-            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}}
         ]) if base64_image else HumanMessage(content=query)
         messages_to_invoke = [human_message] # Wrap in a list for invocation
 
@@ -73,7 +73,8 @@ def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_
         result = agent_app.invoke({"messages": messages_to_invoke}, config) # Use messages_to_invoke
         print(result["messages"])
     except Exception as e:
-        logging.error(f"Error during agent invocation: {str(e)}", exc_info=True)
+        logging.error(f"Error during agent invocation: {str(e)}")
+        logging.error(f"Request payload: {messages_to_invoke}")
         return "Une erreur est survenue lors de la génération de la réponse. Veuillez réessayer."
 
     # Return only the final AI response
