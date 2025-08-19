@@ -10,17 +10,26 @@
     <div class="container">
         <div class="header">
             <h1>🧾 Agent Factures</h1>
-            <div class="subtitle">Analysez vos factures intelligemment</div>
+            <div class="subtitle">Analysez vos factures intelligemment - Traitement par lot supporté</div>
         </div>
-
         <div class="main">
             <!-- Sidebar with query suggestions -->
             <div class="sidebar">
                 <div class="sidebar-title">Suggestions rapides</div>
-                <div class="example-question" onclick="setQuery('Extraire les détails')">📄 Extraire les détails</div>
-                <div class="example-question" onclick="setQuery('Vérifier la cohérence')">✅ Vérifier la cohérence</div>
+                <div class="example-question" onclick="setQuery('Extraire les détails de toutes les factures')">📄 Extraire les détails</div>
+                <div class="example-question" onclick="setQuery('Vérifier la cohérence des documents')">✅ Vérifier la cohérence</div>
+                <div class="example-question" onclick="setQuery('Comparer les factures uploadées')">📊 Comparer les factures</div>
+                <div class="example-question" onclick="setQuery('Créer un résumé Excel')">📈 Résumé Excel</div>
+                
+                <!-- Batch processing info -->
+                <div style="margin-top: 20px; padding: 10px; background: #e8f4fd; border-radius: 6px; font-size: 12px;">
+                    <strong>Traitement par lot:</strong><br>
+                    • Max 5 fichiers<br>
+                    • Max 3 images<br>
+                    • 50MB total<br>
+                    • PDF, JPG, PNG supportés
+                </div>
             </div>
-
             <!-- Chat area -->
             <div id="chatArea" class="chat-area">
                 {% if history %}
@@ -35,44 +44,70 @@
                 {% else %}
                     <div class="empty-state">
                         <div class="icon">💡</div>
-                        <div>Posez une question sur vos factures ou téléchargez un document pour commencer</div>
+                        <div>Posez une question sur vos factures ou téléchargez plusieurs documents pour commencer</div>
+                        <div style="margin-top: 15px; font-size: 0.9em; color: #888;">
+                            Vous pouvez maintenant télécharger jusqu'à 5 fichiers simultanément pour une analyse groupée
+                        </div>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
-
     <!-- Chat input -->
     <form id="chatForm" method="POST" enctype="multipart/form-data" class="chat-input">
-        <div id="previewContainer" class="image-preview"></div>
-        <textarea id="query" name="query" placeholder="Décrivez votre question sur la facture..." rows="2"></textarea>
+        <!-- File preview container -->
+        <div id="previewContainer"></div>
+        
+        <!-- Batch processing info (shown when files are selected) -->
+        <div id="batchInfo" class="batch-info" style="display: none;">
+            <strong>📦 Mode traitement par lot activé</strong> - Tous les fichiers seront analysés ensemble
+        </div>
+        
+        <textarea id="query" name="query" placeholder="Posez votre question (optionnel si vous uploadez des fichiers)..." rows="2"></textarea>
         
         <div class="file-upload-wrapper">
-            <label for="fileUpload" class="custom-file-btn">📎 Choisir fichier</label>
-            <button type="button" id="clearFilesBtn">🗑️ Effacer</button>
+            <label for="fileUpload" class="custom-file-btn">📎 Choisir fichiers</label>
+            <button type="button" id="clearFilesBtn" style="display: none;">🗑️ Effacer</button>
         </div>
         <input id="fileUpload" type="file" name="fileUpload" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple style="display:none;" />
         <button type="submit" id="submitBtn">🚀 Analyser</button>
     </form>
 
+    <!-- Include the updated JavaScript -->
     <script src="{{ url_for('static', filename='js/fetch_response.js') }}"></script>
+    
     <script>
         // Render markdown for existing messages and scroll to bottom on load
         document.addEventListener('DOMContentLoaded', function() {
             const chatArea = document.getElementById('chatArea');
             const messageContents = chatArea.querySelectorAll('.message .content');
             messageContents.forEach(content => {
-                if (content.dataset.content) content.innerHTML = marked.parse(content.dataset.content);
+                if (content.dataset.content) {
+                    content.innerHTML = marked.parse(content.dataset.content);
+                }
             });
             chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: "smooth" });
         });
 
+        // Function to set predefined queries (updated to work with new JS)
         function setQuery(text) {
             const query = document.getElementById('query');
             query.value = text;
             query.focus();
+            // Trigger the updateButtonState function from fetch_response.js
+            if (typeof updateButtonState === 'function') {
+                updateButtonState();
+            }
+            // Hide empty state
+            if (typeof hideEmptyState === 'function') {
+                hideEmptyState();
+            }
+        }
+        
+        // Add utility function for file size calculation (if not in utils.py)
+        function get_file_size_mb(file_bytes) {
+            return file_bytes.length / (1024 * 1024);
         }
     </script>
 </body>
 </html>
-

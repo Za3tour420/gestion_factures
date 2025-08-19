@@ -37,6 +37,18 @@ def encode_image(image_path: str):
         img.save(buffer, format="PNG")
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
+def encode_image_bytes(image_bytes: bytes):
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as img:
+            img = resize_image(img)
+            
+            buffer = io.BytesIO()
+            img.save(buffer, format="PNG")
+            return base64.b64encode(buffer.getvalue()).decode('utf-8')
+    except Exception as e:
+        print(f"An error occurred encoding image from bytes: {e}")
+        return None
+
 def encode_pdf(pdf_path: str):
     b64_page = None
     try:
