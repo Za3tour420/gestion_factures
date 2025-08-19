@@ -50,7 +50,11 @@ function formatFileSize(bytes) {
 }
 
 function isImageFile(filename) {
+<<<<<<< HEAD
     const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'];
+=======
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'bmp'];
+>>>>>>> nim_version
     const extension = filename.split('.').pop().toLowerCase();
     return imageExtensions.includes(extension);
 }

@@ -18,16 +18,26 @@
                 <div class="sidebar-title">Suggestions rapides</div>
                 <div class="example-question" onclick="setQuery('Extraire les détails de toutes les factures')">📄 Extraire les détails</div>
                 <div class="example-question" onclick="setQuery('Vérifier la cohérence des documents')">✅ Vérifier la cohérence</div>
+<<<<<<< HEAD
                 <div class="example-question" onclick="setQuery('Comparer les factures uploadées')">📊 Comparer les factures</div>
                 <div class="example-question" onclick="setQuery('Créer un résumé Excel')">📈 Résumé Excel</div>
+=======
+                <div class="example-question" onclick="setQuery('Comparer les factures mises en ligne')">📊 Comparer les factures</div>
+>>>>>>> nim_version
                 
                 <!-- Batch processing info -->
                 <div style="margin-top: 20px; padding: 10px; background: #e8f4fd; border-radius: 6px; font-size: 12px;">
                     <strong>Traitement par lot:</strong><br>
+<<<<<<< HEAD
                     • Max 5 fichiers<br>
                     • Max 3 images<br>
                     • 50MB total<br>
                     • PDF, JPG, PNG supportés
+=======
+                    • Max 5 fichiers (pdf, images)<br>
+                    • Max 3 images (jpg, jpeg, png, webp, bmp)<br>
+                    • 50MB total (10MB par fichier)<br>
+>>>>>>> nim_version
                 </div>
             </div>
             <!-- Chat area -->
@@ -69,7 +79,7 @@
             <label for="fileUpload" class="custom-file-btn">📎 Choisir fichiers</label>
             <button type="button" id="clearFilesBtn" style="display: none;">🗑️ Effacer</button>
         </div>
-        <input id="fileUpload" type="file" name="fileUpload" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple style="display:none;" />
+        <input id="fileUpload" type="file" name="fileUpload" accept=".pdf,.jpg,.jpeg,.png,.webp,.bmp" multiple style="display:none;" />
         <button type="submit" id="submitBtn">🚀 Analyser</button>
     </form>
 
