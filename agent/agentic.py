@@ -1,11 +1,9 @@
 # agentic.py
 
-from typing import Annotated, Optional, List
+from typing import Annotated, Optional, List, Any, Dict
 from typing_extensions import TypedDict
 
-import base64
-
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, FunctionMessage, SystemMessage
+from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.tools import tool
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 
@@ -52,34 +50,41 @@ memory = InMemorySaver()
 agent_app = build_graph(memory)
 logger.info("Agent started!")
         
-def user_agent_multiturn(query: str, base64_image: Optional[str] = None, thread_id: str = "1", messages_to_invoke: Optional[List] = None): # Added messages_to_invoke
+def user_agent_multiturn(query: str, processed_files: Optional[List[Dict[str, Any]]] = None, thread_id: str = "1", messages_to_invoke: Optional[List] = None):
     
     config = {
         "configurable": {"thread_id": thread_id},
         "max_tokens": 32768
     }
     logging.info("Thread ID for conversation: %s", thread_id)
-
-    # If messages_to_invoke are provided, use them directly
-    # Otherwise, construct the human message as before
-    if messages_to_invoke is None:
-        human_message = HumanMessage(content=[
-            {"type": "text", "text": query},
-            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}}
-        ]) if base64_image else HumanMessage(content=query)
-        messages_to_invoke = [human_message] # Wrap in a list for invocation
-
+    
     try:
-        result = agent_app.invoke({"messages": messages_to_invoke}, config) # Use messages_to_invoke
-        print(result["messages"])
+        result = agent_app.invoke({"messages": messages_to_invoke}, config)
+        
+        # Log the conversation for debugging
+        logger.info("Agent response generated successfully")
+            
     except Exception as e:
-        logging.error(f"Error during agent invocation: {str(e)}")
-        logging.error(f"Request payload: {messages_to_invoke}")
-        return "Une erreur est survenue lors de la génération de la réponse. Veuillez réessayer."
-
+        logging.error(f"Error during agent invocation: {str(e)}", exc_info=True)
+        
+        # Provide more specific error messages based on the type of error
+        if "token" in str(e).lower():
+            return "La requête contient trop de données. Veuillez réduire le nombre de fichiers ou leur taille."
+        elif "timeout" in str(e).lower():
+            return "La requête a pris trop de temps à traiter. Veuillez réessayer avec moins de fichiers."
+        else:
+            return "Une erreur est survenue lors de la génération de la réponse. Veuillez réessayer."
+    
     # Return only the final AI response
     for msg in reversed(result["messages"]):
         if isinstance(msg, AIMessage):
-            return msg.content.strip()
-
+            response_content = msg.content.strip()
+            
+            # Add file processing summary if multiple files were processed
+            """if processed_files and len(processed_files) > 1:
+                file_count_summary = f"\n\n📊 *Résumé: {len(processed_files)} fichiers analysés*"
+                response_content = response_content + file_count_summary"""
+                
+            return response_content
+            
     return "Je n'ai pas pu générer de réponse cette fois."
