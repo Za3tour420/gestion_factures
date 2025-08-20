@@ -37,11 +37,7 @@ def get_file_size(file_bytes):
 
 
 def is_image_file(filename):
-<<<<<<< HEAD
-    image_extensions = {'jpg', 'jpeg', 'png'}
-=======
     image_extensions = {'jpg', 'jpeg', 'png', 'webp', 'bmp'}
->>>>>>> nim_version
     return (
         '.' in filename
         and filename.rsplit('.', 1)[1].lower() in image_extensions
