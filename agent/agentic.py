@@ -28,7 +28,8 @@ registered_tools = [
     rag_management_rules,
     rag_usage_cases,
     extract_products_and_services,
-    save_to_excel
+    save_to_excel,
+    sandbox_tool
 ]
 
 def build_graph(memory: InMemorySaver):
@@ -50,7 +51,7 @@ memory = InMemorySaver()
 agent_app = build_graph(memory)
 logger.info("Agent started!")
         
-def user_agent_multiturn(query: str, processed_files: Optional[List[Dict[str, Any]]] = None, thread_id: str = "1", messages_to_invoke: Optional[List] = None):
+async def user_agent_multiturn(query: str, processed_files: Optional[List[Dict[str, Any]]] = None, thread_id: str = "1", messages_to_invoke: Optional[List] = None):
     
     config = {
         "configurable": {"thread_id": thread_id},
@@ -59,7 +60,8 @@ def user_agent_multiturn(query: str, processed_files: Optional[List[Dict[str, An
     logging.info("Thread ID for conversation: %s", thread_id)
     
     try:
-        result = agent_app.invoke({"messages": messages_to_invoke}, config)
+        result = await agent_app.ainvoke({"messages": messages_to_invoke}, config)
+        print(result)
         
         # Log the conversation for debugging
         logger.info("Agent response generated successfully")

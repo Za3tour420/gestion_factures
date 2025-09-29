@@ -20,11 +20,38 @@ previewContainer.innerHTML = "";
 window.addEventListener("DOMContentLoaded", updateButtonState);
 
 /********* Functions *********/
+async function updateMetrics() {
+    try {
+        const res = await fetch("/metrics");
+        if (!res.ok) return;
+
+        const data = await res.json();
+        document.getElementById("cpuUsage").textContent = data.cpu.toFixed(1);
+        document.getElementById("memUsage").textContent = data.memory.percent.toFixed(1);
+        document.getElementById("memUsed").textContent = data.memory.used;
+        document.getElementById("memTotal").textContent = data.memory.total;
+        
+        if (data.gpu) {
+            document.getElementById("gpuName").textContent = data.gpu.name;
+            document.getElementById("gpuUsed").textContent = data.gpu.used.toFixed(1);
+            document.getElementById("gpuTotal").textContent = data.gpu.total;
+        }
+        
+    } catch (err) {
+        console.error("Metrics fetch failed:", err);
+    }
+}
+
+// Poll every 2 seconds
+setInterval(updateMetrics, 1000);
+
+// Load immediately on page open
+updateMetrics();
+
 function setQuery(text) {
     query.value = text;
     query.focus();
     updateButtonState();
-    hideEmptyState();
 }
 
 function hideEmptyState() {
@@ -50,11 +77,7 @@ function formatFileSize(bytes) {
 }
 
 function isImageFile(filename) {
-<<<<<<< HEAD
-    const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'];
-=======
     const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'bmp'];
->>>>>>> nim_version
     const extension = filename.split('.').pop().toLowerCase();
     return imageExtensions.includes(extension);
 }

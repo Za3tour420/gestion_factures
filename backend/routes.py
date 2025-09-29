@@ -10,6 +10,12 @@ from agent.agentic import user_agent_multiturn
 from core.utils import encode_pdf_from_stream, encode_image_bytes
 from config import SAVE_INVOICES_DIR
 
+import pynvml
+import psutil
+
+pynvml.nvmlInit()
+handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+
 
 # ============================================================
 # Blueprint & Config
@@ -55,7 +61,8 @@ def build_system_prompt():
         "LA FISCALITÉ FRANÇAISE ET LA FACTURE ÉLECTRONIQUE!**\n\n"
         "Si vous traitez une facture et qu'on vous demande d'extraire ses informations, "
         "vérifiez si l'utilisateur souhaite sauvegarder les détails dans un fichier Excel. "
-        "Puis, ne retournez que le lien du téléchargement après confirmation de l'utilisateur.\n\n"
+        "Si vous traiter plusieurs factures, demander à l'utilisateur s'il souhaite sauvegarde chacune dans des fichiers Excel séparés. "
+        "Puis, ne retournez que le(s) lien(s) du téléchargement après confirmation de l'utilisateur.\n\n"
         "Si vous cherchez une information dans une base des connaissances, retournez un résumé "
         "des informations pertinentes.\n\n"
         "Si l'utilisateur envoie 'bonjour' ou 'test', répondez poliment et indiquez votre mission.\n\n"
@@ -79,7 +86,7 @@ def index():
 
 
 @main_routes.route("/chat", methods=["POST"])
-def chat():
+async def chat():
     """Main chat endpoint: handles queries + file uploads."""
     # Ensure session
     if "thread_id" not in session:
@@ -165,7 +172,7 @@ def chat():
     # Invoke Agent
     # --------------------------------------------------------
     try:
-        response = user_agent_multiturn(
+        response = await user_agent_multiturn(
             query,
             processed_files if processed_files else None,
             session["thread_id"],
@@ -193,4 +200,27 @@ def chat():
 def download_excel(filename):
     """Download saved invoice Excel file."""
     return send_from_directory(SAVE_INVOICES_DIR, filename, as_attachment=True)
+
+@main_routes.route("/metrics")
+def metrics():
+    # CPU usage
+    cpu = psutil.cpu_percent(interval=0.5)
+    
+    memory = {
+        "percent": psutil.virtual_memory().percent,
+        "used": psutil.virtual_memory().used // (1024**2),
+        "total": psutil.virtual_memory().total // (1024**2)
+    }
+
+    gpu = {
+        "name": pynvml.nvmlDeviceGetName(handle),
+        "used": pynvml.nvmlDeviceGetMemoryInfo(handle).used / 1024**2,
+        "total": pynvml.nvmlDeviceGetMemoryInfo(handle).total / 1024**2
+    }
+
+    return jsonify({
+        "cpu": cpu,
+        "memory": memory,
+        'gpu': gpu
+    })
 

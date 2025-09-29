@@ -7,6 +7,12 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
+    <div id="metricsPanel">
+                <strong>📊 Ressources système</strong><br>
+                CPU: <span id="cpuUsage">--</span>% |
+                RAM: <span id="memUsage">--</span>% (<span id="memUsed">--</span> MB / <span id="memTotal">--</span> MB) |
+                GPU: <span id="gpuName">--</span> (<span id="gpuUsed">--</span> MB / <span id="gpuTotal">--</span> MB)
+    </div>
     <div class="container">
         <div class="header">
             <h1>🧾 Agent Factures</h1>
@@ -16,28 +22,16 @@
             <!-- Sidebar with query suggestions -->
             <div class="sidebar">
                 <div class="sidebar-title">Suggestions rapides</div>
-                <div class="example-question" onclick="setQuery('Extraire les détails de toutes les factures')">📄 Extraire les détails</div>
-                <div class="example-question" onclick="setQuery('Vérifier la cohérence des documents')">✅ Vérifier la cohérence</div>
-<<<<<<< HEAD
-                <div class="example-question" onclick="setQuery('Comparer les factures uploadées')">📊 Comparer les factures</div>
-                <div class="example-question" onclick="setQuery('Créer un résumé Excel')">📈 Résumé Excel</div>
-=======
-                <div class="example-question" onclick="setQuery('Comparer les factures mises en ligne')">📊 Comparer les factures</div>
->>>>>>> nim_version
+                <div class="example-question" onclick="setQuery('Extraire les détails de toutes les factures fournies')">📄 Extraire les détails</div>
+                <div class="example-question" onclick="setQuery('Vérifier la cohérence des documents fournis')">✅ Vérifier la cohérence</div>
+                <div class="example-question" onclick="setQuery('Comparer les factures fournies')">📊 Comparer les factures</div>
                 
                 <!-- Batch processing info -->
                 <div style="margin-top: 20px; padding: 10px; background: #e8f4fd; border-radius: 6px; font-size: 12px;">
                     <strong>Traitement par lot:</strong><br>
-<<<<<<< HEAD
-                    • Max 5 fichiers<br>
-                    • Max 3 images<br>
-                    • 50MB total<br>
-                    • PDF, JPG, PNG supportés
-=======
                     • Max 5 fichiers (pdf, images)<br>
                     • Max 3 images (jpg, jpeg, png, webp, bmp)<br>
                     • 50MB total (10MB par fichier)<br>
->>>>>>> nim_version
                 </div>
             </div>
             <!-- Chat area -->
@@ -107,10 +101,6 @@
             // Trigger the updateButtonState function from fetch_response.js
             if (typeof updateButtonState === 'function') {
                 updateButtonState();
-            }
-            // Hide empty state
-            if (typeof hideEmptyState === 'function') {
-                hideEmptyState();
             }
         }
         

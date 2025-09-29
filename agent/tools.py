@@ -7,6 +7,8 @@ from langchain.chains import RetrievalQA
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
+from langchain_experimental.utilities import PythonREPL
+
 from langchain_core.tools import tool
 
 from core.utils import get_google_api_keys
@@ -190,3 +192,14 @@ def save_to_excel(data: dict, output_dir=SAVE_INVOICES_DIR, filename_prefix="fac
     
     return f"Fichier crée avec success!\nTélécharger ici: {download_url}"
     
+#********************************************************************#
+# Sandbox tool
+#********************************************************************#
+python_repl = PythonREPL()
+
+@tool("sandbox_tool", return_direct=False)
+def sandbox_tool(command: str) -> str:
+    """A Python shell. Use this to execute Python commands (i.e. arithmetic operations). 
+    Input should be a valid Python command. If you want to see 
+    the output of a value, you should print it out with `print(...)`."""
+    return python_repl.run(command)
