@@ -18,7 +18,7 @@ msoffcrypto-tool==5.4.2
 pillow==11.3.0
 pypdf==5.8.0
 flask==3.1.1
-"Flask[async]"
+Flask[async]
 playwright==1.54.0
 pyngrok==7.2.12
 python-dotenv==1.1.1
