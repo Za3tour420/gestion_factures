@@ -37,5 +37,8 @@ Note: A package requires root access to install its dependencies. If you install
 python3 run.py
 ```
 
-## 6. Agent Pipeline
+## 6. Sequence Diagram
+![image](sequence_diagram.png)
+
+## 7. Agent Pipeline
 ![image](pipeline.png)
