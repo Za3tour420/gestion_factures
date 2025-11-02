@@ -42,3 +42,15 @@ python3 run.py
 
 ## 7. Agent Pipeline
 ![image](pipeline.png)
+
+## 8. Demo Screenshots
+![image](screenshots/1.png)
+![image](screenshots/2.png)
+![image](screenshots/3.png)
+![image](screenshots/4.png)
+![image](screenshots/5.png)
+![image](screenshots/6.png)
+![image](screenshots/7.png)
+![image](screenshots/8.png)
+![image](screenshots/9.png)
+![image](screenshots/10.png)
