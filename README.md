@@ -1,3 +1,5 @@
+SCREENSHOTS BELOW!
+
 # 🐍 Python Project Setup (Linux)
 
 ## 1. Clone the repository (make sure you have Git installed on your machine)
@@ -44,6 +46,7 @@ python3 run.py
 ![image](pipeline.png)
 
 ## 8. Demo Screenshots
+The following screenshots showcase the agent's ability to consult its knowledge bases, perform web search, extract and save relevant invoices information while sticking to the context (finance) without deviating.
 ![image](screenshots/1.png)
 ![image](screenshots/2.png)
 ![image](screenshots/3.png)
